@@ -1,4 +1,3 @@
 .env
-seen_links.json
 __pycache__/
 *.pyc

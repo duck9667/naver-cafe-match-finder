@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import json
 import os
+import re
 import sys
 import urllib.parse
 import urllib.request
@@ -16,7 +17,9 @@ QUERIES = [
 ]
 EXCLUDE_KEYWORDS = [
     kw.strip()
-    for kw in os.environ.get("EXCLUDE_KEYWORDS", "초청,매칭완료,용병").split(",")
+    for kw in os.environ.get(
+        "EXCLUDE_KEYWORDS", "초청,매칭완료,매치완료,마감,용병,회원 모집,팀원 구합니다,양도"
+    ).split(",")
     if kw.strip()
 ]
 REMOVE_FROM_TITLE = [
@@ -51,18 +54,17 @@ def save_seen(seen):
 
 
 def strip_tags(text):
-    import re
     return re.sub(r"<.*?>", "", text)
 
 
-def main():
+def get_new_items():
+    """Search all configured queries, filter to the target cafe, drop
+    already-seen links and excluded titles, and persist newly-seen links.
+    Returns a list of {title, link, description, query} dicts."""
     if not CLIENT_ID or not CLIENT_SECRET:
-        print(
-            "[error] NAVER_CLIENT_ID / NAVER_CLIENT_SECRET 환경변수가 설정되지 않았습니다. "
-            "README의 설정 방법을 참고하세요.",
-            file=sys.stderr,
+        raise RuntimeError(
+            "NAVER_CLIENT_ID / NAVER_CLIENT_SECRET 환경변수가 설정되지 않았습니다."
         )
-        sys.exit(1)
 
     seen = load_seen()
     new_items = []
@@ -94,6 +96,15 @@ def main():
             })
 
     save_seen(seen)
+    return new_items
+
+
+def main():
+    try:
+        new_items = get_new_items()
+    except RuntimeError as e:
+        print(f"[error] {e}", file=sys.stderr)
+        sys.exit(1)
 
     if not new_items:
         print("새로운 게시글 없음")
