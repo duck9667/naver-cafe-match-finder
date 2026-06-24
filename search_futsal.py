@@ -28,6 +28,7 @@ REMOVE_FROM_TITLE = [
     if w.strip()
 ]
 STATE_FILE = os.path.join(os.path.dirname(__file__), "seen_links.json")
+DEDUPE_SEEN = os.environ.get("DEDUPE_SEEN", "true").strip().lower() not in ("false", "0", "no")
 
 API_URL = "https://openapi.naver.com/v1/search/cafearticle.json"
 
@@ -58,16 +59,18 @@ def strip_tags(text):
 
 
 def get_new_items():
-    """Search all configured queries, filter to the target cafe, drop
-    already-seen links and excluded titles, and persist newly-seen links.
+    """Search all configured queries, filter to the target cafe and excluded
+    titles. By default also drops already-seen links (DEDUPE_SEEN=true) and
+    persists newly-seen links; set DEDUPE_SEEN=false to keep re-reporting
+    every matching post on every run instead of only new ones.
     Returns a list of {title, link, description, query} dicts."""
     if not CLIENT_ID or not CLIENT_SECRET:
         raise RuntimeError(
             "NAVER_CLIENT_ID / NAVER_CLIENT_SECRET 환경변수가 설정되지 않았습니다."
         )
 
-    seen = load_seen()
-    new_items = []
+    seen = load_seen() if DEDUPE_SEEN else set()
+    items = []
 
     for query in QUERIES:
         try:
@@ -85,18 +88,20 @@ def get_new_items():
             if any(kw in title for kw in EXCLUDE_KEYWORDS):
                 continue
             link = item.get("link")
-            if link in seen:
-                continue
-            seen.add(link)
-            new_items.append({
+            if DEDUPE_SEEN:
+                if link in seen:
+                    continue
+                seen.add(link)
+            items.append({
                 "title": title,
                 "link": link,
                 "description": strip_tags(item.get("description", "")),
                 "query": query,
             })
 
-    save_seen(seen)
-    return new_items
+    if DEDUPE_SEEN:
+        save_seen(seen)
+    return items
 
 
 def main():
