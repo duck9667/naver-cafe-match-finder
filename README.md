@@ -56,7 +56,7 @@ python3 search_futsal.py
 
 Claude Code의 scheduled task 기능으로 주기적 실행 + Slack DM 알림까지 자동화할 수 있다. 실제로 사용한 지침 전문은 [AUTOMATION.md](./AUTOMATION.md)에 그대로 정리해뒀다 — 그대로 복사해서 본인 환경(경로, Slack 채널/유저 ID, 카페명)에 맞게 값만 바꾸면 재현 가능하다. 핵심 포인트:
 
-- 일정 주기(예: 3시간마다)로 `search_futsal.py`를 실행
+- 일정 주기(예: 1시간마다)로 `search_futsal.py`를 실행
 - 출력된 제목 + description을 LLM이 직접 읽고, 날짜/시간/장소/인원수를 정리된 형식으로 재구성 (날짜 표기가 "26.6.28", "6월19일", "26년 6월 21일" 등 제각각이라 정규식보다 LLM이 해석하는 게 안정적)
 - description까지 읽고 "용병 모집/팀원 모집/구장 양도" 등 실제로는 매칭글이 아닌 경우 한 번 더 걸러내기
 - 매치 날짜가 실행일 기준 과거면 제외 (기간 필터)
@@ -72,7 +72,7 @@ Claude scheduled task와 달리 GitHub Actions는 LLM 없이 도는 순수 cron 
 - `parse_match.py` — 제목/description에서 날짜·시간·장소·인원수를 정규식으로 추출, 과거 매치 제외
 - `notify_slack.py` — Slack Bot Token으로 메시지 발송. **수신자는 리스트라서 친구를 추가하려면 user ID 하나만 더 넣으면 됨**
 - `run.py` — 위 셋을 묶어서 한 번에 실행하는 진입점 (GitHub Actions가 이걸 호출)
-- `.github/workflows/notify.yml` — 3시간마다(`0 */3 * * *`) `run.py`를 실행하고, `seen_links.json` 변경분을 다시 레포에 커밋해서 다음 실행에 이어받는 워크플로우
+- `.github/workflows/notify.yml` — 1시간마다(`0 * * * *`) `run.py`를 실행하고, `seen_links.json` 변경분을 다시 레포에 커밋해서 다음 실행에 이어받는 워크플로우
 
 ### 1. Slack Bot 만들기
 
@@ -106,7 +106,7 @@ Claude scheduled task와 달리 GitHub Actions는 LLM 없이 도는 순수 cron 
 
 ### 4. 동작 확인
 
-Actions 탭 → "Cafe match notifier" → "Run workflow"로 수동 실행해서 바로 테스트할 수 있다. 이후로는 cron이 3시간마다 자동으로 돈다.
+Actions 탭 → "Cafe match notifier" → "Run workflow"로 수동 실행해서 바로 테스트할 수 있다. 이후로는 cron이 1시간마다 자동으로 돈다.
 
 ### `seen_links.json`이 git에 커밋되는 이유
 
@@ -118,7 +118,7 @@ GitHub Actions는 매번 깨끗한 환경에서 시작하기 때문에, "이미 
 - `parse_match.py` — 정규식 기반 날짜/시간/장소/인원수 파서 (GitHub Actions 경로에서 사용)
 - `notify_slack.py` — Slack Bot Token 기반 다중 수신자 발송기
 - `run.py` — search → parse → Slack 발송까지 한 번에 묻는 진입점
-- `.github/workflows/notify.yml` — 3시간마다 자동 실행하는 GitHub Actions 워크플로우
+- `.github/workflows/notify.yml` — 1시간마다 자동 실행하는 GitHub Actions 워크플로우
 - `AUTOMATION.md` — Claude scheduled task로 돌릴 때 쓴 지침 원문 (LLM 기반, GitHub Actions보다 해석 정확도가 높음)
 - `.env.example` — 환경변수 템플릿 (`.env`는 git에 올리지 않음)
 - `seen_links.json` — 이미 알려준 글의 링크 기록 (GitHub Actions가 자동으로 갱신·커밋함)

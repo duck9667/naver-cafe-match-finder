@@ -4,8 +4,9 @@
 1. Search the target cafe for new matching posts (search_futsal.get_new_items).
 2. Parse each post's date/time/location/team size with parse_match.format_entry,
    dropping posts whose match date is already in the past.
-3. Send one Slack message (bold header + bullet list, or a "no new posts"
-   line) to every recipient in SLACK_RECIPIENTS.
+3. If anything survives, send one Slack message (bold header + bullet list)
+   to every recipient in SLACK_RECIPIENTS. If nothing new/relevant was
+   found, send nothing — already-notified posts are never re-sent.
 """
 import os
 import sys
@@ -45,12 +46,12 @@ def main():
         if line:
             lines.append(line)
 
-    if lines:
-        header = f"**{CAFE_LABEL} - 매칭 새 글 ({len(lines)}건)**"
-        message = header + "\n" + "\n".join(f"• {line}" for line in lines)
-    else:
-        message = f"{CAFE_LABEL} - 매칭 새 글 없음"
+    if not lines:
+        print("새로운 매칭 글 없음 (또는 전부 필터링됨) - Slack 메시지 보내지 않음")
+        return
 
+    header = f"**{CAFE_LABEL} - 매칭 새 글 ({len(lines)}건)**"
+    message = header + "\n" + "\n".join(f"• {line}" for line in lines)
     notify_slack.notify(token, recipients, message)
 
 
