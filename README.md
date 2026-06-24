@@ -80,9 +80,10 @@ Claude scheduled task와 달리 GitHub Actions는 LLM 없이 도는 순수 cron 
 
 1. https://api.slack.com/apps → "Create New App" → "From scratch"
 2. 워크스페이스 선택 후 생성
-3. 좌측 "OAuth & Permissions" → Bot Token Scopes에 `chat:write`, `im:write` 추가
+3. 좌측 "OAuth & Permissions" → Bot Token Scopes에 `chat:write` 추가 (채널에만 보낼 거면 이거 하나로 충분. 개인 DM도 같이 쓸 거면 `im:write`도 추가)
 4. 상단 "Install to Workspace" → 설치 → 발급된 **Bot User OAuth Token** (`xoxb-...`) 복사
-5. 알림 받을 사람(나 + 친구)이 모두 이 워크스페이스에 있어야 한다 (DM은 같은 워크스페이스 안에서만 가능). 각자의 Slack user ID는 Slack에서 프로필 → "..." → "Copy member ID"로 확인
+5. 알림 보낼 채널(예: `#general`)에 이 봇을 초대한다 — Slack에서 그 채널 열고 `/invite @봇이름` 입력
+6. 채널 ID 확인: 채널 이름 클릭 → 맨 아래 "채널 ID" 복사 (또는 채널 URL의 `C...` 부분)
 
 ### 2. GitHub repo에 Secrets 등록
 
@@ -93,13 +94,15 @@ Claude scheduled task와 달리 GitHub Actions는 LLM 없이 도는 순수 cron 
 | `NAVER_CLIENT_ID` | 네이버 API client ID |
 | `NAVER_CLIENT_SECRET` | 네이버 API client secret |
 | `SLACK_BOT_TOKEN` | 위에서 받은 `xoxb-...` |
-| `SLACK_RECIPIENTS` | 알림 받을 Slack user ID들, 쉼표로 구분 (예: `U0XXXXXXX,U0YYYYYYY`) |
+| `SLACK_RECIPIENTS` | 알림 보낼 채널 ID, 쉼표로 여러 개 가능 (예: `C0XXXXXXXXX`). 특정 사람한테 DM으로도 보내고 싶으면 그 사람 user ID(`U...`)를 같이 나열하면 됨 |
+
+채널로 보내면 그 채널에 있는 모든 사람(친구 포함)이 같은 알림을 보게 되므로, 친구를 추가하고 싶을 땐 **채널에 친구를 초대하기만 하면** 된다 (Secret을 다시 건드릴 필요 없음).
 
 카페명/검색어/제외 키워드를 기본값과 다르게 쓰고 싶으면 (선택) Repository variables로 `TARGET_CAFE`, `SEARCH_QUERIES`, `EXCLUDE_KEYWORDS`도 추가하면 된다.
 
 ### 3. 친구에게도 보내기
 
-`SLACK_RECIPIENTS` secret 값에 친구의 user ID를 쉼표로 추가하면 끝 (`U0XXXXXXX,U0YYYYYYY`). 코드 수정 불필요 — `notify_slack.py`가 리스트의 각 사람에게 개별 DM을 연다.
+채널 방식이면 **그 채널에 친구를 초대**하면 끝 — Secret을 다시 건드릴 필요 없다. 채널 말고 친구 개인 DM으로 따로 보내고 싶다면, `SLACK_RECIPIENTS`에 그 친구의 user ID를 쉼표로 추가하면 된다 (`C0XXXXXXX,U0YYYYYYY`처럼 채널과 유저 ID를 섞어 써도 됨). 코드 수정은 필요 없다 — `notify_slack.py`가 리스트의 각 대상에게 따로 발송한다.
 
 ### 4. 동작 확인
 
