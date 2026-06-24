@@ -54,13 +54,15 @@ python3 search_futsal.py
 
 ## 자동 실행 (Claude Code 사용 시)
 
-Claude Code의 scheduled task 기능으로 주기적 실행 + Slack DM 알림까지 자동화할 수 있다. 직접 만들 때 참고할 포인트:
+Claude Code의 scheduled task 기능으로 주기적 실행 + Slack DM 알림까지 자동화할 수 있다. 실제로 사용한 지침 전문은 [AUTOMATION.md](./AUTOMATION.md)에 그대로 정리해뒀다 — 그대로 복사해서 본인 환경(경로, Slack 채널/유저 ID, 카페명)에 맞게 값만 바꾸면 재현 가능하다. 핵심 포인트:
 
 - 일정 주기(예: 3시간마다)로 `search_futsal.py`를 실행
 - 출력된 제목 + description을 LLM이 직접 읽고, 날짜/시간/장소/인원수를 정리된 형식으로 재구성 (날짜 표기가 "26.6.28", "6월19일", "26년 6월 21일" 등 제각각이라 정규식보다 LLM이 해석하는 게 안정적)
 - description까지 읽고 "용병 모집/팀원 모집/구장 양도" 등 실제로는 매칭글이 아닌 경우 한 번 더 걸러내기
 - 매치 날짜가 실행일 기준 과거면 제외 (기간 필터)
 - 결과를 Slack DM(MCP `slack_send_message`)으로 전송. Slack 도구에 표준 마크다운(`**bold**`)으로 입력하면 Slack 문법(`*bold*`)으로 자동 변환되니, 굳이 Slack 문법을 직접 쓰지 않아도 된다 (단, `*텍스트*`처럼 별표 1개로 직접 쓰면 이탤릭으로 변환되어버리니 주의)
+
+GitHub Actions 같은 순수 cron 환경으로 옮기려면 LLM이 하던 해석/필터링 로직을 코드나 별도 LLM API 호출로 대체해야 한다 — 자세한 내용도 AUTOMATION.md 하단 참고.
 
 ## 파일 구성
 
