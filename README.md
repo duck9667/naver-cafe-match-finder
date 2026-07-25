@@ -103,7 +103,7 @@ Claude scheduled task와 달리 GitHub Actions는 LLM 없이 도는 순수 cron 
 
 ### 3. 친구에게도 보내기
 
-채널 방식이면 **그 채널에 친구를 초대**하면 끝 — Secret을 다시 건드릴 필요 없다. 채널 말고 친구 개인 DM으로 따로 보내고 싶다면, `SLACK_RECIPIENTS`에 그 친구의 user ID를 쉼표로 추가하면 된다 (`C0XXXXXXX,U0YYYYYYY`처럼 채널과 유저 ID를 섞어 써도 됨). 코드 수정은 필요 없다 — `notify_slack.py`가 리스트의 각 대상에게 따로 발송한다.
+채널 방식이면 **그 채널에 친구를 초대**하면 끝이다: Secret을 다시 건드릴 필요 없다. 채널 말고 친구 개인 DM으로 따로 보내고 싶다면, `SLACK_RECIPIENTS`에 그 친구의 user ID를 쉼표로 추가하면 된다 (`C0XXXXXXX,U0YYYYYYY`처럼 채널과 유저 ID를 섞어 써도 됨). 코드 수정은 필요 없다: `notify_slack.py`가 리스트의 각 대상에게 따로 발송한다.
 
 ### 4. 동작 확인
 
